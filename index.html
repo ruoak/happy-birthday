@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>給寶寶的專屬驚喜 🎁</title>
+    <style>
+        /* ==================== 
+           0. 立體禮物盒與視角推進動畫 
+           ==================== */
+        #gift-screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #ffe6eb;
+            z-index: 9999;
+            display: none; 
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; 
+        }
+
+        .gift-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .gift-container {
+            position: relative;
+            cursor: pointer;
+            width: 150px;
+            height: 120px;
+            margin-top: 50px;
+            animation: float 3s ease-in-out infinite; 
+        }
+
+        .gift-container.opening { animation: none; }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .gift-box {
+            width: 150px;
+            height: 120px;
+            background-color: #ff6b81;
+            border-radius: 5px 5px 10px 10px;
+            position: absolute;
+            bottom: 0;
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.2);
+            transition: transform 1.2s cubic-bezier(0.5, 0, 0.5, 1) 0.8s, opacity 0.5s ease 1.5s; 
+        }
+        
+        .gift-container.opening .gift-box {
+            transform: scale(50); 
+            opacity: 0;
+        }
+
+        .gift-box::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 100%;
+            background-color: #ffd32a;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .gift-lid {
+            width: 170px;
+            height: 40px;
+            background-color: #ff4757;
+            border-radius: 5px;
+            position: absolute;
+            top: -35px;
+            left: -10px;
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.1), 0 5px 10px rgba(0,0,0,0.2);
+            z-index: 2;
+            transition: all 0.8s ease-in 0.4s; 
+        }
+
+        .gift-lid::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 100%;
+            background-color: #ffd32a;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .gift-container.opening .gift-lid {
+            transform: translateY(-150px) rotate(25deg) scale(1.1);
+            opacity: 0;
+        }
+
+        .gift-bow {
+            position: absolute;
+            top: -65px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 40px;
+            z-index: 3;
+        }
+
+        .bow-left, .bow-right {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 5px solid #ffd32a;
+            top: 0;
+            box-sizing: border-box;
+            transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .bow-left { left: 0; border-radius: 50% 50% 0 50%; transform: rotate(45deg); }
+        .bow-right { right: 0; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); }
+
+        .gift-container.opening .bow-left {
+            transform: translate(-80px, -30px) rotate(0deg) scale(0.5);
+            opacity: 0;
+        }
+        .gift-container.opening .bow-right {
+            transform: translate(80px, -30px) rotate(0deg) scale(0.5);
+            opacity: 0;
+        }
+
+        .gift-hint {
+            margin-top: 40px;
+            color: #ff4757;
+            font-weight: bold;
+            font-size: 18px;
+            animation: blink 1.5s infinite;
+            transition: opacity 0.3s;
+        }
+        
+        .gift-container.opening ~ .gift-hint { opacity: 0; }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ==================== 
+           1. 基礎網頁設定 
+           ==================== */
+        body {
+            font-family: '微軟正黑體', sans-serif;
+            background-color: #ffe6eb;
+            color: #5a4b4b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh; 
+            margin: 0;
+            padding-bottom: 50px; 
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 600px; 
+            width: 90%;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        h1 { color: #ff6b81; }
+        h2 { color: #ff4757; margin-bottom: 20px;}
+
+        input {
+            padding: 10px;
+            width: 80%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #ff6b81;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover { background-color: #ff4757; }
+
+        .chapter-btn {
+            display: block;
+            width: 100%;
+            background-color: #f1f2f6;
+            color: #5a4b4b;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ff6b81;
+        }
+        .chapter-btn:hover { background-color: #ff6b81; color: white; }
+
+        .back-btn { background-color: #ced6e0; color: #2f3542; }
+        .back-btn:hover { background-color: #a4b0be; }
+
+        #menu-section, .chapter-content { display: none; }
+        
+        /* ==================== 
+           2. 照片牆 (Grid) 樣式 - 用於旅行章節
+           ==================== */
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); 
+            gap: 15px; 
+            padding: 10px;
+        }
+
+        .thumbnail {
+            width: 100%;
+            height: 120px; 
+            object-fit: cover; 
+            border-radius: 8px;
+            cursor: pointer; 
+            transition: transform 0.2s, opacity 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .thumbnail:hover {
+            transform: scale(1.05); 
+            border-color: #ff6b81;
+        }
+
+        /* ==================== 
+           3. 彈出視窗 (Modal) 基礎樣式 
+           ==================== */
+        .modal-overlay {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.85); 
+            z-index: 1000; 
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 15px;
+            border-radius: 12px;
+            max-width: 90%;
+            max-height: 80vh; 
+            text-align: center;
+            position: relative;
+            animation: popIn 0.3s ease; 
+        }
+
+        .modal-content img {
+            max-width: 100%;
+            max-height: 60vh; 
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .modal-caption {
+            margin-top: 15px;
+            font-size: 18px;
+            color: #ff6b81;
+            font-weight: bold;
+            font-family: 'Comic Sans MS', '微軟正黑體', cursive;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+         /* ==================== 
+            4. 文青直書模式 (垂直排版) 樣式
+            ==================== */
+        .modal-content.vertical-mode {
+            display: flex;             
+            flex-direction: row;       
+            align-items: center;
+            justify-content: center;
+            width: fit-content; 
+            padding: 30px;
+            margin: auto;
+        }
+
+        .modal-content.vertical-mode img {
+            max-height: 70vh;          
+            width: auto;               
+            max-width: 80%;            
+            margin: 0;                 
+        }
+
+        .modal-content.vertical-mode .modal-caption {
+            writing-mode: vertical-rl; 
+            text-orientation: upright; 
+            margin-top: 0;             
+            margin-left: 20px;         
+            height: auto;
+            text-align: left;          
+        }
+        
+        .message-box {
+             background-color: rgba(255, 255, 255, 0.6);
+             padding: 20px;
+             border-radius: 10px;
+             margin: 20px 0;
+             line-height: 1.8; 
+             text-align: left;
+        }
+
+        /* ==================== 
+           5. 電影畫廊牆風格 (Framed Wall Art)
+           ==================== */
+        .framed-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            background-image: linear-gradient(to bottom right, #eef2f3, #d9e0e3);
+            border-radius: 12px;
+            padding: 40px 20px;
+            gap: 20px; 
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .framed-poster {
+            background-color: #111; 
+            padding: 4px; 
+            border: 2px solid #333; 
+            box-shadow: 4px 6px 15px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .framed-poster img {
+            width: 110px; 
+            height: 160px; 
+            object-fit: cover;
+            display: block;
+        }
+
+        .framed-poster:nth-child(even) { margin-top: 30px; }
+
+        .framed-poster:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 5px 15px 25px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        /* ==================== 
+           6. 凌亂拍立得風格 (Scattered Polaroid) - 用於美食
+           ==================== */
+        .scattered-gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            gap: 15px; 
+        }
+
+        .polaroid {
+            background-color: white;
+            padding: 10px 10px 30px 10px; 
+            border-radius: 4px;
+            box-shadow: 2px 4px 15px rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative; 
+            margin: -10px 5px; 
+            width: max-content; 
+        }
+
+        .polaroid img {
+            width: 120px; 
+            height: 120px; 
+            object-fit: cover;
+            display: block;
+            border: 1px solid #eee;
+        }
+
+        .polaroid:nth-child(even) { transform: rotate(8deg) translateY(10px); }
+        .polaroid:nth-child(odd) { transform: rotate(-6deg) translateY(-5px); }
+        .polaroid:nth-child(3n) { transform: rotate(-3deg) translateY(15px); }
+        .polaroid:nth-child(4n) { transform: rotate(5deg) translateY(-15px); }
+
+        .polaroid:hover {
+            transform: scale(1.2) rotate(0deg) translateY(0);
+            z-index: 10; 
+            box-shadow: 4px 8px 25px rgba(0,0,0,0.3);
+        }
+
+        /* ==================== 
+           7. 信件內靜態拍立得樣式 (不可點擊)
+           ==================== */
+        .letter-polaroid-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px; 
+            margin-bottom: 30px;
+        }
+
+        .letter-polaroid {
+            background-color: white;
+            padding: 12px 12px 45px 12px; 
+            border-radius: 2px; 
+            box-shadow: 3px 5px 15px rgba(0,0,0,0.2); 
+            max-width: 80%; 
+            border: 1px solid #ddd;
+        }
+
+        .letter-polaroid img {
+            width: 100%; 
+            height: auto;
+            display: block;
+            border: 1px solid #eee; 
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgm" loop>
+        <source src="bgm.mp3" type="audio/mpeg">
+        您的瀏覽器不支援音樂播放。
+    </audio>
+
+    <div class="container" id="lock-section">
+        <h1>🔐 通關密語</h1>
+        <p>提示：我們最愛香香軟軟的小貓叫什麼名字？</p>
+        <input type="text" id="password" placeholder="輸入答案...">
+        <br>
+        <button onclick="checkPassword()">解鎖</button>
+    </div>
+
+    <div id="gift-screen">
+        <div class="gift-wrapper">
+            <div style="font-size: 24px; color: #ff4757; font-weight: bold; margin-bottom: 20px;">
+                有一份專屬驚喜等著妳...
+            </div>
+            
+            <div class="gift-container" onclick="openGift()">
+                <div class="gift-bow">
+                    <div class="bow-left"></div>
+                    <div class="bow-right"></div>
+                </div>
+                <div class="gift-lid"></div>
+                <div class="gift-box"></div>
+            </div>
+            
+            <p class="gift-hint">（點擊禮物盒拆開）</p>
+        </div>
+    </div>
+
+    <div class="container" id="menu-section">
+        <h1>📖 我們的專屬回憶錄</h1>
+        <p>寶寶，生日快樂🎂🎂🎂！!!!我將我們從9月到現在相處的點點滴滴記錄在這裏面，請選擇以下開始：</p>
+        <button class="chapter-btn" onclick="showChapter('travel')">🎒 阿寶&阿貓的日月潭遊</button>
+        <button class="chapter-btn" onclick="showChapter('movies')">🎬 窩在一起看的電影</button>
+        <button class="chapter-btn" onclick="showChapter('food')">🍴 成為法國老爺爺甜點師的一天</button>
+        <button class="chapter-btn" onclick="showChapter('letter')">💌 給阿寶的一封信</button>
+        <button class="chapter-btn" onclick="showChapter('future')">🐾 未來的小計畫</button>
+    </div>
+
+    <div class="container chapter-content" id="chapter-travel">
+        <h2>🎒 阿寶&阿貓的日月潭遊</h2>
+        
+        <div class="photo-grid">
+            <img src="images/travel_Swan Boat 2.jpg" class="thumbnail" onclick="openModal(this)" data-vertical="false" data-msg="還記得小貓剛上船的時候，緊張得要命一直動來動去還很新奇的站很高">
+            <img src="images/travel_Swan Boat.jpg" class="thumbnail" onclick="openModal(this)" data-vertical="false" data-msg="在日月潭中央，這一段時光讓我忘記塵世間的紛擾。只想要跟妳還有小貓永遠待在一起 ❤">
+            <img src="images/travel_car5.jpg" class="thumbnail" onclick="openModal(this)" data-vertical="true" data-msg="小貓表示：媽媽在幹嘛！看前面看得那麼認真～">
+            <img src="images/travel_car2.jpg" class="thumbnail" onclick="openModal(this)" data-vertical="false" data-msg="來看一下我媽在幹嘛好了~">
+            <img src="images/travel_car1.jpg" class="thumbnail" onclick="openModal(this)" data-vertical="false" data-msg="我媽到底在幹嘛?? (迷之角度) ">
+            <img src="images/travel_car 3.jpg" class="thumbnail" onclick="openModal(this)" data-vertical="false" data-msg="我也來陪我媽認真開車 (監工上線) ">
+            <img src="images/travel_car4.jpg" class="thumbnail" onclick="openModal(this)" data-vertical="false" data-msg="這張真的是母女神情同步的照片">
+        </div>
+
+        <p style="margin-top: 20px; color: #888; font-size: 14px;">在做這一個章節的時候，突然發現我跟阿寶很常待在一起，但我都沒有好好地拍照或是記錄下來，回過頭來看真的好可惜。在接下來的日子，我會好好的紀錄跟享受與阿寶在一起的時光。(點擊照片可以放大)</p>
+        <button class="back-btn" onclick="backToMenu()">⬅️ 返回目錄</button>
+    </div>
+
+    <div class="container chapter-content" id="chapter-movies">
+        <h2>🎬 窩在一起看的電影</h2>
+        <p style="color: #888; font-size: 14px; margin-bottom: 20px;">(把游標移到牆上的海報上試試看！點擊可放大)</p>
+        
+        <div class="framed-gallery">
+            <div class="framed-poster">
+                <img src="images/TV series1.jpg" onclick="openModal(this)" data-vertical="false" data-msg="這是我們第一次在一起看的第一部劇，還記得當時我們吃著KFC&聖多諾非常輕鬆的追劇，但也是很瘋狂一個晚上直接將整整一季看完。是我之前從來沒有體驗的事情，跟妳再一起真的多了很多有趣跟新奇的體驗。">
+            </div>
+            <div class="framed-poster">
+                <img src="images/movie1.jpg" onclick="openModal(this)" data-vertical="false" data-msg="第一部一起去電影院看的電影，這部電影中間跟後面很壓抑，他們家人把妻子直接送去改造。當時看的時候，我還記得妳剛從新竹回來，我說要抱妳，因為妳不開心，結果我沒有一見面就抱妳，讓妳不開心了。">
+            </div>
+            <div class="framed-poster">
+                <img src="images/pardiase.png" onclick="openModal(this)" data-vertical="false" data-msg="還記得當時我們在北投邊吃KFC邊看著這一部影集 (我們之前出去很常吃KFC) ">
+            </div>
+            <div class="framed-poster">
+                <img src="images/bad love.png" onclick="openModal(this)" data-vertical="false" data-msg="當時在這看這一部的時候，妳在飯店用藝術季的資料，我在登記北醫助教的分數，想想就很奇妙。後來因為這一部妳覺得主持人的分析方式很燥，so就棄坑不看了">
+            </div>
+            <div class="framed-poster">
+                <img src="images/movie2.jpg" onclick="openModal(this)" data-vertical="false" data-msg="這部真的超好哭，轉頭看妳哭得唏哩嘩啦的，當下其實我也有一點想要哭，但是看到妳在哭，我就把眼淚憋了回去，因為我想要先照顧好妳的情緒。">
+            </div>
+            <div class="framed-poster">
+                <img src="images/ghost.jpg" onclick="openModal(this)" data-vertical="false" data-msg="MAKOTO 愛的視線 又近又遠 也許有點狼狽 妳的笑顏 我的沉醉 這應該就是 愛的滋味">
+            </div>
+            <div class="framed-poster">
+                <img src="images/96min.jpg" onclick="openModal(this)" data-vertical="false" data-msg="當時在看這一部電影的時候，因為劇情到後面一直拖 然後因為李傑又在搞鬼才會衍伸出那麼多事情(為甚麼是用又因為百萬人推理...) ">
+            </div>            
+            <div class="framed-poster">
+                <img src="images/100.png" onclick="openModal(this)" data-vertical="false" data-msg="在一開始看的時候，我以為我已經將故事結尾的犯人猜出來了。結果事實證明妳才是最聰明的一個，在一開始就有發現主管怪怪的，一定要聽妳的話，因為妳好聰明。">
+            </div> 
+            <div class="framed-poster">
+                <img src="images/movie3.jpg" onclick="openModal(this)" data-vertical="false" data-msg="我們在去年的時候，就對這一部非常的期待了。結果前幾天看完後這部有點雷，但跟妳一起邊看邊吐槽也是一種樂趣，之後等Netflix上了，我們再一起多刷幾遍，找到again  again">            
+            </div>
+        </div> 
+        
+        <p class="message-box">不管看什麼電影，最開心的就是有妳靠在旁邊。希望未來的無數個日子裡，我都能一直當妳專屬的靠枕，不管劇情多麼高潮迭起，我的肩膀永遠為妳留著。</p>
+        <button class="back-btn" onclick="backToMenu()">⬅️ 返回目錄</button>
+    </div>
+    
+    <div class="container chapter-content" id="chapter-food">
+        <h2>🍴 成為法國老爺爺甜點師的一天</h2>
+        <p style="color: #888; font-size: 14px; margin-bottom: 20px;">(把游標移到散落的相片上試試看！點擊可放大)</p>
+        
+        <div class="scattered-gallery">
+            <div class="polaroid">
+                <img src="images/Dessert_1.jpg" onclick="openModal(this)" data-vertical="false" data-msg="阿寶選的這一間店，超級漂亮，而且製作過程很好玩，這間店下次還要再來～">
+            </div>
+            <div class="polaroid">
+                <img src="images/Dessert_2.jpg" onclick="openModal(this)" data-vertical="true" data-msg="半夜看到這這一張照片，真的覺得我們很有機會出去賣甜點，一定是法國老爺爺的第一代傳人😂">
+            </div>
+            <div class="polaroid">
+                <img src="images/Dessert_3.jpg" onclick="openModal(this)" data-vertical="true" data-msg="阿寶跟我愛的結晶~這樣拍超像是IG美食帳再拍排隊名店">
+            </div>            
+            <div class="polaroid">
+                <img src="images/Dessert_4.jpg" onclick="openModal(this)" data-vertical="true" data-msg="這一張照片說明了~美女配上美食真的是賞心悅目">
+            </div>
+            <div class="polaroid">
+                <img src="images/Dessert_5.jpg" onclick="openModal(this)" data-vertical="true" data-msg="我還記得阿寶當時在擠鮮奶油的時候，那個姿勢還有穩定性簡直就是一絕的，最後成品擠出來是真的超級漂亮!!!!😍">
+            </div>
+            <div class="polaroid">
+                <img src="images/Dessert_6.jpg" onclick="openModal(this)" data-vertical="true" data-msg="阿寶的這個眼神還有姿勢，真的是超級專業~展現出匠人的一面，我可以想到阿寶在做藝術時的樣子，超級帥氣又有魅力的。">
+            </div>
+            <div class="polaroid">
+                <img src="images/Dessert_9.jpg" onclick="openModal(this)" data-vertical="true" data-msg="我真的好喜歡這一張照片~因為跟阿寶認識那麼久，我們一起拍的照片沒有到很多，所以每一張有跟阿寶一起拍的照片我就覺得好幸福。(阿寶這一張的眼睛超級超級漂亮的😍😍😍簡直把我的魂給勾走了)">
+            </div>
+        </div>
+
+        <p class="message-box">謝謝阿寶在我生日的時候，帶我去做甜點，這一個體驗是我重來沒有做過的。而且跟著阿寶一起完成一件事情的過程還有結果，我都覺得好甜蜜跟好棒~~謝謝阿寶 我愛妳。</p>
+        
+        <button class="back-btn" onclick="backToMenu()">⬅️ 返回目錄</button>
+    </div>
+
+    <div class="container chapter-content" id="chapter-letter">
+        <h2>💌 給阿寶的一封信</h2>
+        
+        <div class="letter-polaroid-area">
+            <div class="letter-polaroid">
+                <img src="images/浮現祭2.jpg" alt="我們的自製筆記">
+            </div>
+        </div>
+        
+        <div class="message-box" style="text-align: left; font-size: 16px; letter-spacing: 1px;">
+            親愛的阿寶：<br><br>
+            
+            在信的最一開始，還是要先祝我的寶貝生日快樂！希望妳未來的課業和所有活動都能順順利利，每科都 ALL PASS。<br><br>
+            
+            在製作這個回憶網頁時，腦海裡不斷浮現我們相處的點點滴滴。從 Lululemon 事件、國慶煙火、圖書館一起聽的歌、看《今際之國》、泡溫泉到陪妳開刀...這中間有太多開心的回憶，當然也有偶爾的不開心（我知道大多時候都是阿寶在生我的氣啦😂）。但我最想說的是：謝謝妳！當初要不是妳主動找我去拿體檢報告，還點醒我「行動比說的更重要」，我現在根本沒有機會牽著妳的手、跟妳在一起。<br><br>
+            
+            從 9 月認識到現在，我們一起經歷、完成了好多大大小小的事，這些都是我在遇見妳之前，從沒想過也不曾嘗試過的。因為妳，我開始踏實地規劃未來，也學會靜下心來，去感受阿寶在乎什麼、需要什麼、心裡在想些什麼。<br><br>
+            
+            謝謝妳帶給我的改變與快樂，更謝謝妳出現在我的生命裡。不管是看電影、做甜點，還是平凡的日常相處，每一個有妳在身邊的瞬間，我都覺得自己是全宇宙最幸運的人。<br><br>
+            
+            寶貝，我愛妳。我會一直陪在妳身邊，無論有沒有發生事情，只要妳一通電話，我一定立刻出現在妳面前。妳可以隨時問我 "Do you love me?"，我的答案永遠都會是「我愛妳」，一千遍、一萬遍，這個答案始終不變。謝謝妳愛我，是妳給了我勇敢去愛妳的力量❤️❤️<br><br>
+            
+            <div style="text-align: right; font-weight: bold; color: #ff6b81; margin-top: 20px;">
+                永遠愛妳的 Oak 🐾
+            </div>
+        </div>
+        
+        <button class="back-btn" onclick="backToMenu()">⬅️ 返回目錄</button>
+    </div>
+
+    <div class="container chapter-content" id="chapter-future">
+        <h2>🐾 未來的小計畫</h2>
+        <div class="message-box">
+            寶貝~接下來我還要一起跟妳過無數個生日，紀念日跟節日！<br><br>
+            之後要和阿寶一起參加很多不一樣的活動與展覽，還有年底 11 月帶芝麻糊一起飛去韓國看寵物展的旅行了！未來還有好多好多地方，等著我們一起去解鎖。<br><br>
+            <span style="font-weight:bold; color:#ff6b81;">生日快樂，最愛妳的 Oak 🐾</span>
+        </div>
+        <button class="back-btn" onclick="backToMenu()">⬅️ 返回目錄</button>
+    </div>
+
+    <div class="modal-overlay" id="photo-modal" onclick="closeModal()">
+        <div style="position: relative; max-width: 800px; width: 100%; display: flex; justify-content: center;">
+            <span class="close-modal">&times;</span>
+            <div class="modal-content" id="modal-content-box" onclick="event.stopPropagation()"> 
+                <img id="modal-img" src="" alt="放大照片">
+                <p id="modal-text" class="modal-caption"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 0. 密碼檢查邏輯 (密碼正確 -> 播放音樂 + 顯示禮物盒)
+        function checkPassword() {
+            var input = document.getElementById('password').value.trim();
+            if(input === '芝麻糊' || input === '芝麻') {
+                // 隱藏密碼鎖
+                document.getElementById('lock-section').style.display = 'none';
+                
+                // ★ 播放背景音樂 ★
+                var music = document.getElementById('bgm');
+                music.play().catch(function(error) {
+                    console.log("瀏覽器阻擋了音樂自動播放，或找不到音樂檔");
+                });
+
+                // 顯示禮物畫面
+                document.getElementById('gift-screen').style.display = 'flex';
+            } else {
+                alert('密碼不對喔！再想一下～');
+            }
+        }
+
+        // 1. 開啟禮物盒動畫邏輯
+        function openGift() {
+            var container = document.querySelector('.gift-container');
+            if(container.classList.contains('opening')) return;
+            
+            container.classList.add('opening'); 
+            
+            setTimeout(function() {
+                var giftScreen = document.getElementById('gift-screen');
+                giftScreen.style.opacity = '0'; 
+                
+                setTimeout(function() {
+                    giftScreen.style.display = 'none';
+                    document.getElementById('menu-section').style.display = 'block';
+                }, 500);
+            }, 1800);
+        }
+
+        // 2. 切換章節邏輯
+        function showChapter(chapterId) {
+            document.getElementById('menu-section').style.display = 'none';
+            var targetId = 'chapter-' + chapterId;
+            document.getElementById(targetId).style.display = 'block';
+        }
+
+        function backToMenu() {
+            var chapters = document.getElementsByClassName('chapter-content');
+            for(var i = 0; i < chapters.length; i++) {
+                chapters[i].style.display = 'none';
+            }
+            document.getElementById('menu-section').style.display = 'block';
+        }
+
+        // 3. 照片彈出視窗
+        function openModal(thumbnailElement) {
+            var photoSrc = thumbnailElement.src;
+            var message = thumbnailElement.getAttribute('data-msg');
+            var isVertical = thumbnailElement.getAttribute('data-vertical') === "true";
+
+            document.getElementById('modal-img').src = photoSrc;
+            document.getElementById('modal-text').innerText = message;
+            
+            var modalContent = document.getElementById('modal-content-box');
+
+            if (isVertical) {
+                modalContent.classList.add('vertical-mode');
+            } else {
+                modalContent.classList.remove('vertical-mode');
+            }
+
+            document.getElementById('photo-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('photo-modal').style.display = 'none';
+        }
+    </script>
+
+</body>
+</html>
